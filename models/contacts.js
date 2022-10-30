@@ -1,4 +1,4 @@
-const fs = require('fs/promises')
+const fs = require('fs/promises');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
@@ -26,8 +26,8 @@ const removeContact = async (contactId) => {
 
 const addContact = async (name, email, phone) => {
   const contacts = await listContacts();
-  const newContact = {id: uuidv4(), name, email, phone}
-  const newData = contacts.push(newContact);
+  const newContact = { id: uuidv4(), name, email, phone };
+  const newData = [...contacts, newContact];
   fs.writeFile(contactsPath, JSON.stringify(newData));
   return newContact;
 };

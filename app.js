@@ -14,38 +14,8 @@ app.use(express.json());
 
 app.use('/api/contacts', contactsRouter);
 
-// app.get('/', (req, res) => {
-//   res.send('Hello app');
-// });
-const {
-  listContacts,
-  getContactById,
-  // removeContact,
-  // addContact,
-  // updateContact,
-} = require('./models/contacts');
-
-app.get('/', async (req, res) => {
-  try {
-    const contacts = await listContacts();
-    res.status(200).json({ code: '200', message: 'success', contacts });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/:contactId', async (req, res) => {
-  try {
-    const { contactId } = req.params;
-    const contactById = await getContactById(contactId);
-    if (!contactById) {
-      res.status(404).json({ code: '404', message: 'Not found' });
-      return;
-    }
-    res.status(200).json({ code: '200', message: 'Success', contactById });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+app.get('/', (req, res) => {
+  res.send('<h1>Homepage</h1>');
 });
 
 app.use((req, res) => {
