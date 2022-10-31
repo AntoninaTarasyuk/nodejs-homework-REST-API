@@ -11,7 +11,7 @@ const {
 const Joi = require('joi');
 const schema = Joi.object({
   name: Joi.string().min(2).max(22).required(),
-  email: Joi.string().required(),
+  email: Joi.string().email({ minDomainSegments: 2 }).required(),
   phone: Joi.string().required()
 });
 
