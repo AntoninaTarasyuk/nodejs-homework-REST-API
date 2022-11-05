@@ -18,7 +18,7 @@ const schema = Joi.object({
 router.get('/', async (req, res) => {
   try {
     const contacts = await listContacts();
-    res.status(200).json({ code: '200', message: 'Success', contacts });
+    res.status(200).json(contacts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -32,7 +32,7 @@ router.get('/:contactId', async (req, res) => {
       res.status(404).json({ code: '404', message: 'Not found' });
       return;
     }
-    res.status(200).json({ code: '200', message: 'Success', contactById });
+    res.status(200).json(contactById);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -55,10 +55,6 @@ router.delete('/:contactId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    // if (!name || !email || !phone) {
-    //   res.status(400).json({ code: '400', message: 'Missing required field' });
-    //   return;
-    // }
     const { error } = schema.validate(req.body);
     if (error) {
       res.status(400).json({ code: '400', message: `Missing required field. Validation error: ${error.message}` });
@@ -74,10 +70,6 @@ router.post('/', async (req, res) => {
 router.put('/:contactId', async (req, res) => {
   try {
     const { contactId } = req.params;
-    // if (Object.keys(req.body).length === 0) {
-    //   res.status(400).json({ code: '400', message: 'Missing required field' });
-    //   return;
-    // }
     const { error } = schema.validate(req.body);
     if (error) {
       res.status(400).json({ code: '400', message: `Missing required field. Validation error: ${error.message}` });
@@ -88,7 +80,7 @@ router.put('/:contactId', async (req, res) => {
       res.status(404).json({ code: '404', message: 'Not found' });
       return;
     }
-    res.status(200).json({ code: '200', message: 'Successfully updated', updatedContact });
+    res.status(200).json(updatedContact);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
