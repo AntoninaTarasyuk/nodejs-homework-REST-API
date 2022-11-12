@@ -17,7 +17,7 @@ app.use((err, req, res, next) => {
     return res.status(err.status).json({message: err.message});
   };
   if (err.name === "CastError") {
-    return res.status(400).json({message: 'Incorrect id'});
+    return res.status(404).json({message: 'Not found'});
   };
   res.status(500).json({ message: err.message });
 });
