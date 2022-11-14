@@ -8,12 +8,24 @@ const tryCatchWrapper = (endpointFn) => {
   };
 };
 
+const validation = (schema) => {
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      error.status = 400;
+      next(error);
+    }
+    next();
+  };
+};
+
 const createError = (status, err) => {
   const messages = {
     400: 'Bad request',
     401: 'Unauthorized',
     403: 'Forbidden',
     404: 'Not found',
+    409: 'Conflict'
   }
   let message;
   if (err) {
@@ -26,5 +38,6 @@ const createError = (status, err) => {
 
 module.exports = {
   tryCatchWrapper,
+  validation,
   createError, 
 };
