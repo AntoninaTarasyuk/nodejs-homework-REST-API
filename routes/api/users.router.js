@@ -14,7 +14,7 @@ const { joiSchema } = require('../../models/users.model');
 const router = express.Router();
 
 router.post('/signup', validation(joiSchema), tryCatchWrapper(registerUser));
-router.post('/login', tryCatchWrapper(loginUser));
+router.post('/login', validation(joiSchema), tryCatchWrapper(loginUser));
 router.get('/logout', tryCatchWrapper(auth), tryCatchWrapper(logoutUser));
 // router.get('/current', tryCatchWrapper(getCurrentUser));
 // router.patch('/', tryCatchWrapper(patchSubscriptionUser));

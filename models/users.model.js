@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose');
-// const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const userSchema = Schema(
   {
@@ -37,7 +37,10 @@ const userSchema = Schema(
 //   user.password = hashedPassword;
 //   next();
 // });
-
+userSchema.methods.setPassword = async function (password) {
+  const salt = await bcrypt.genSalt(5);
+  this.password = bcrypt.hash(password, salt);
+}
 const Joi = require('joi');
 const joiSchema = Joi.object({
   email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ua'] } }).required(),
