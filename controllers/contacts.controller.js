@@ -13,7 +13,8 @@ const statusSchema = Joi.object({
 });
 
 const listContacts = async (req, res, next) => {
-  const contacts = await Contacts.find();
+  const { _id } = req.user;
+  const contacts = await Contacts.find({owner: _id});
   return res.status(200).json(contacts);
 };
 
@@ -32,9 +33,10 @@ const removeContact = async (req, res, next) => {
 };
 
 const addContact = async (req, res, next) => {
+  const { _id } = req.user;
   const { error } = schema.validate(req.body);
   if (error) { return next(createError(400, error)) };
-  const newContact = await Contacts.create(req.body);
+  const newContact = await Contacts.create({...req.body, owner: _id });
   return res.status(201).json(newContact);
 };
 
