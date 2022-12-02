@@ -35,10 +35,9 @@ const loginUser = async (req, res, next) => {
 };
 
 const logoutUser = async (req, res, next) => {
-  const { user } = req;
-  user.token = null;
-  await User.findByIdAndUpdate(user._id, user);
-  return res.status(204).json({ message: 'logout' });
+  const { _id } = req.user;
+  await User.findByIdAndUpdate(_id, { token: null});
+  return res.status(204).json();
 };
 
 const getCurrentUser = async (req, res, next) => {

@@ -16,7 +16,7 @@ const router = express.Router();
 router.post('/register', validation(userValidation), tryCatchWrapper(registerUser));
 router.post('/login', validation(userValidation), tryCatchWrapper(loginUser));
 router.get('/logout', auth, tryCatchWrapper(logoutUser));
-router.get('/current', tryCatchWrapper(auth), tryCatchWrapper(getCurrentUser));
-router.patch('/', validation(subscriptionValidation), tryCatchWrapper(auth), tryCatchWrapper(patchSubscriptionUser));
+router.get('/current', auth, tryCatchWrapper(getCurrentUser));
+router.patch('/', validation(subscriptionValidation), auth, tryCatchWrapper(patchSubscriptionUser));
 
 module.exports = router;
