@@ -5,13 +5,10 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { JWT_SECRET } = process.env;
 
-// const { createError } = require('../helpers/helpers');
-
 const registerUser = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user) { throw new Conflict(`User with email ${email} already registered`)};
-  
   // const newUser = new User({ email });
   // newUser.setPassword(password);
   // newUser.save();
@@ -32,20 +29,29 @@ const loginUser = async (req, res, next) => {
   if (!isPassCorrect) { throw new Unauthorized('Wrong password') };
   const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '2h' });
   user.token = token;
+  const { subscription } = user;
   await User.findByIdAndUpdate(user._id, user);
-  return res.json({ token: token });
+  return res.status(200).json({ token, user: { email, subscription }, });
 };
 
 const logoutUser = async (req, res, next) => {
   const { user } = req;
   user.token = null;
   await User.findByIdAndUpdate(user._id, user);
-  return res.json({ message: 'logout' });
+  return res.status(204).json({ message: 'logout' });
 };
 
 const getCurrentUser = async (req, res, next) => {
-  console.log(req.user);
-  return res.json({ data: req.user });
+  const { token, email, subscription } = req.user;
+  return res.status(200).json({ token, user: { email, subscription }, });
+};
+
+const patchSubscriptionUser = async (req, res, next) => {
+  const { _id, email } = req.user;
+  const { subscription } = req.body;
+  const updatedUser = await User.findByIdAndUpdate(_id, { subscription }, { new: true });
+  if (!updatedUser) { next(new Unauthorized('User does not exists')) };
+  return res.status(200).json({ user: {email, subscription}, });
 };
 
 module.exports = {
@@ -53,4 +59,5 @@ module.exports = {
   loginUser,
   logoutUser,
   getCurrentUser,
+  patchSubscriptionUser
 };

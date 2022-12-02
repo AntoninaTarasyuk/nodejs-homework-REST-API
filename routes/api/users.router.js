@@ -4,19 +4,19 @@ const {
   loginUser,
   logoutUser,
   getCurrentUser,
-  // patchSubscriptionUser,
+  patchSubscriptionUser,
 } = require('../../controllers/users.controller');
 
 const { tryCatchWrapper, validation } = require('../../helpers/helpers');
 const auth = require('../../middlewares/auth');
-const { joiSchema } = require('../../models/users.model');
+const { userValidation, subscriptionValidation } = require('../../models/users.model');
 
 const router = express.Router();
 
-router.post('/signup', validation(joiSchema), tryCatchWrapper(registerUser));
-router.post('/login', validation(joiSchema), tryCatchWrapper(loginUser));
-router.get('/logout', tryCatchWrapper(auth), tryCatchWrapper(logoutUser));
+router.post('/register', validation(userValidation), tryCatchWrapper(registerUser));
+router.post('/login', validation(userValidation), tryCatchWrapper(loginUser));
+router.get('/logout', auth, tryCatchWrapper(logoutUser));
 router.get('/current', tryCatchWrapper(auth), tryCatchWrapper(getCurrentUser));
-// router.patch('/', tryCatchWrapper(patchSubscriptionUser));
+router.patch('/', validation(subscriptionValidation), tryCatchWrapper(auth), tryCatchWrapper(patchSubscriptionUser));
 
 module.exports = router;

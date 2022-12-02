@@ -14,7 +14,9 @@ const statusSchema = Joi.object({
 
 const listContacts = async (req, res, next) => {
   const { _id } = req.user;
-  const contacts = await Contacts.find({owner: _id});
+  const { page, limit } = req.query;
+  const skip = (page - 1) * limit;
+  const contacts = await Contacts.find({owner: _id}, '', {skip, limit: Number(limit)}).populate('owner','_id email');
   return res.status(200).json(contacts);
 };
 
