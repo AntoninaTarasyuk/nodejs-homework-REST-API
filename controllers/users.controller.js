@@ -1,7 +1,10 @@
 const { Unauthorized, Conflict } = require('http-errors');
-const { User } = require('../models/users.model');
+const gravatar = require('gravatar');
+const path = require('path');
+const fs = require('fs/promises');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { User } = require('../models/users.model');
 require('dotenv').config();
 const { JWT_SECRET } = process.env;
 
@@ -12,12 +15,14 @@ const registerUser = async (req, res, next) => {
   // const newUser = new User({ email });
   // newUser.setPassword(password);
   // newUser.save();
+  const avatarURL = gravatar.url(email);
   const salt = await bcrypt.genSalt(5);
   const hashedPassword = await bcrypt.hash(password, salt);
-  const newUser = await User.create({ email, password: hashedPassword });
+  const newUser = await User.create({ email, password: hashedPassword, avatarURL });
   return res.status(201).json({ user: {
     email: newUser.email,
-    subscription: newUser.subscription
+    subscription: newUser.subscription,
+    avatarURL: newUser.avatarURL
   } });  
 };
 
@@ -45,12 +50,29 @@ const getCurrentUser = async (req, res, next) => {
   return res.status(200).json({ token, user: { email, subscription }, });
 };
 
-const patchSubscriptionUser = async (req, res, next) => {
+const updateUserSubscription = async (req, res, next) => {
   const { _id, email } = req.user;
   const { subscription } = req.body;
-  const updatedUser = await User.findByIdAndUpdate(_id, { subscription }, { new: true });
-  if (!updatedUser) { throw new Unauthorized('User does not exists'); };
+  await User.findByIdAndUpdate(_id, { subscription }, { new: true });
   return res.status(200).json({ user: {email, subscription}, });
+};
+
+const avatarsDir = path.join(__dirname, '../', 'public', 'avatars');
+
+const updateUserAvatar = async (req, res, next) => {
+  const { _id } = req.user;
+  const { path: tmpUpload, originalname } = req.file; 
+  const avatarName = `${_id}_${originalname}`;
+  const resultUpload = path.join(avatarsDir, avatarName);
+  try {
+    await fs.rename(tmpUpload, resultUpload);
+    const avatarURL = path.join('public', 'avatars', avatarName);
+    await User.findByIdAndUpdate(_id, {avatarURL}, { new: true });
+    return res.status(200).json( { message: 'Avatar updated', user: {avatarURL}, });
+  } catch (error) {
+    await fs.unlink(tmpUpload);
+    throw error;
+  }
 };
 
 module.exports = {
@@ -58,5 +80,6 @@ module.exports = {
   loginUser,
   logoutUser,
   getCurrentUser,
-  patchSubscriptionUser
+  updateUserSubscription,
+  updateUserAvatar,
 };

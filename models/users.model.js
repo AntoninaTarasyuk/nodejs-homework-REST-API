@@ -14,9 +14,10 @@ const userSchema = Schema(
     },
     subscription: {
       type: String,
-      enum: ["starter", "pro", "business"],
-      default: "starter"
+      enum: ['starter', 'pro', 'business'],
+      default: 'starter'
     },
+    avatarURL: String,
     token: {
       type: String,
       default: null,
@@ -40,7 +41,7 @@ const userValidation = Joi.object({
   password: Joi.string().required(),
 });
 const subscriptionValidation = Joi.object({
-  subscription: Joi.string().valid("starter", "pro", "business").required(),
+  subscription: Joi.string().valid('starter', 'pro', 'business').required(),
 });
 
 const User = model('user', userSchema);
