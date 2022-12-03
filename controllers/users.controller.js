@@ -24,9 +24,9 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) { throw new Unauthorized('User does not exists') };
+  if (!user) { throw new Unauthorized('Email or password is wrong'); };
   const isPassCorrect = await bcrypt.compare(password, user.password);
-  if (!isPassCorrect) { throw new Unauthorized('Wrong password') };
+  if (!isPassCorrect) { throw new Unauthorized('Email or password is wrong'); };
   const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '2h' });
   user.token = token;
   const { subscription } = user;
@@ -49,7 +49,7 @@ const patchSubscriptionUser = async (req, res, next) => {
   const { _id, email } = req.user;
   const { subscription } = req.body;
   const updatedUser = await User.findByIdAndUpdate(_id, { subscription }, { new: true });
-  if (!updatedUser) { next(new Unauthorized('User does not exists')) };
+  if (!updatedUser) { throw new Unauthorized('User does not exists'); };
   return res.status(200).json({ user: {email, subscription}, });
 };
 
