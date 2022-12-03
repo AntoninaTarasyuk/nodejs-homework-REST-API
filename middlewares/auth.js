@@ -7,17 +7,14 @@ async function auth(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
     const [tokenType, token] = authHeader.split(' ');
-    if (tokenType !== 'Bearer' || !token) { next(new Unauthorized()); };
+    if (!token || tokenType !== 'Bearer') { throw new Unauthorized('Not authorized'); };
     const {_id} = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(_id);
-    if (!user) { next(new Unauthorized('No user with such id')); };
-    if (!user.token) { throw new Unauthorized('Token is invalid'); };
+    if (!user || !user.token) { throw new Unauthorized('Not authorized'); };
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') { next(new Unauthorized(error.name)); };
-    if (error.name === 'JsonWebTokedError') { next(new Unauthorized(error.name)); };
-    next(new Unauthorized());
+    next(new Unauthorized(error.message));
   }
 };
 

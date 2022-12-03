@@ -17,6 +17,6 @@ router.post('/register', validation(userValidation), tryCatchWrapper(registerUse
 router.post('/login', validation(userValidation), tryCatchWrapper(loginUser));
 router.get('/logout', auth, tryCatchWrapper(logoutUser));
 router.get('/current', auth, tryCatchWrapper(getCurrentUser));
-router.patch('/', validation(subscriptionValidation), auth, tryCatchWrapper(patchSubscriptionUser));
+router.patch('/', auth, validation(subscriptionValidation), tryCatchWrapper(patchSubscriptionUser));
 
 module.exports = router;
