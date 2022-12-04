@@ -14,7 +14,7 @@ async function auth(req, res, next) {
     req.user = user;
     next();
   } catch (error) {
-    next(new Unauthorized(error.message));
+    next(new Unauthorized('Not authorized'));
   }
 };
 

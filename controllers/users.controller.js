@@ -2,6 +2,7 @@ const { Unauthorized, Conflict } = require('http-errors');
 const gravatar = require('gravatar');
 const path = require('path');
 const fs = require('fs/promises');
+const Jimp = require('jimp');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/users.model');
@@ -58,7 +59,6 @@ const updateUserSubscription = async (req, res, next) => {
 };
 
 const avatarsDir = path.join(__dirname, '../', 'public', 'avatars');
-
 const updateUserAvatar = async (req, res, next) => {
   const { _id } = req.user;
   const { path: tmpUpload, originalname } = req.file; 
@@ -67,8 +67,12 @@ const updateUserAvatar = async (req, res, next) => {
   try {
     await fs.rename(tmpUpload, resultUpload);
     const avatarURL = path.join('public', 'avatars', avatarName);
+    Jimp.read(avatarURL, (err, avatar) => {
+      if (err) throw err;
+      avatar.resize(250, 250).write(avatarURL);
+    });
     await User.findByIdAndUpdate(_id, {avatarURL}, { new: true });
-    return res.status(200).json( { message: 'Avatar updated', user: {avatarURL}, });
+    return res.status(200).json({ avatarURL });
   } catch (error) {
     await fs.unlink(tmpUpload);
     throw error;
