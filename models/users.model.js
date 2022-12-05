@@ -15,16 +15,22 @@ const userSchema = Schema(
     subscription: {
       type: String,
       enum: ['starter', 'pro', 'business'],
-      default: 'starter'
+      default: 'starter',
     },
-    avatarURL: String,
+    avatarURL: {
+      type: String,
+    },
     token: {
       type: String,
       default: null,
     },
-    owner: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, 'Verify token is required'],
     },
   },
   {versionKey: false, timeStamps: true}
@@ -38,7 +44,7 @@ const userSchema = Schema(
 const Joi = require('joi');
 const userValidation = Joi.object({
   email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ua'] } }).required(),
-  password: Joi.string().required(),
+  password: Joi.string().min(5).required(),
 });
 const subscriptionValidation = Joi.object({
   subscription: Joi.string().valid('starter', 'pro', 'business').required(),

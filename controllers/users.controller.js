@@ -1,11 +1,13 @@
-const { Unauthorized, Conflict } = require('http-errors');
+const { Unauthorized, Conflict, NotFound, BadRequest } = require('http-errors');
 const gravatar = require('gravatar');
 const path = require('path');
 const fs = require('fs/promises');
 const Jimp = require('jimp');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4  } = require('uuid');
 const { User } = require('../models/users.model');
+const sendVerificationEmail = require('../helpers/nodeMail');
 require('dotenv').config();
 const { JWT_SECRET } = process.env;
 
@@ -13,22 +15,27 @@ const registerUser = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user) { throw new Conflict(`User with email ${email} already registered`)};
-  // const newUser = new User({ email });
-  // newUser.setPassword(password);
-  // newUser.save();
+  const verificationToken = uuidv4(7);
   const avatarURL = gravatar.url(email);
+  
   const salt = await bcrypt.genSalt(5);
   const hashedPassword = await bcrypt.hash(password, salt);
-  const newUser = await User.create({ email, password: hashedPassword, avatarURL });
+  
+  const newUser = await User.create({
+    email, password: hashedPassword, avatarURL, verificationToken
+  });
+  await sendVerificationEmail(email, verificationToken);
   return res.status(201).json({ user: {
     email: newUser.email,
     subscription: newUser.subscription,
-    avatarURL: newUser.avatarURL
+    avatarURL: newUser.avatarURL,
+    verificationToken: newUser.verificationToken
   } });  
 };
 
 const loginUser = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, verify } = req.body;
+  if (!verify) { throw new Unauthorized('Email is wrong or not verify, or password is wrong'); };
   const user = await User.findOne({ email });
   if (!user) { throw new Unauthorized('Email or password is wrong'); };
   const isPassCorrect = await bcrypt.compare(password, user.password);
@@ -80,6 +87,22 @@ const updateUserAvatar = async (req, res, next) => {
   }
 };
 
+const verifyUserEmail = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  const user = User.findOne({ verificationToken });
+  if (!user) { throw new NotFound('User not found') };
+  await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null }, { new: true });
+  res.status(200).json({ message: 'Verification successful' });
+};
+
+const resendVerificationEmail = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email, verify: false });
+  if (!user) { throw new BadRequest('Verification has already been passed'); };
+  await sendVerificationEmail(user.email, user.verificationToken);
+  res.status(200).json({ message: 'Verification email sent' });
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -87,4 +110,6 @@ module.exports = {
   getCurrentUser,
   updateUserSubscription,
   updateUserAvatar,
+  verifyUserEmail,
+  resendVerificationEmail
 };

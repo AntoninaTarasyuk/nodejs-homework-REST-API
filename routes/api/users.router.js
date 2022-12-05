@@ -6,6 +6,8 @@ const {
   getCurrentUser,
   updateUserSubscription,
   updateUserAvatar,
+  verifyUserEmail,
+  resendVerificationEmail,
 } = require('../../controllers/users.controller');
 
 const { tryCatchWrapper, validation } = require('../../helpers/helpers');
@@ -21,4 +23,7 @@ router.get('/logout', auth, tryCatchWrapper(logoutUser));
 router.get('/current', auth, tryCatchWrapper(getCurrentUser));
 router.patch('/', auth, validation(subscriptionValidation), tryCatchWrapper(updateUserSubscription));
 router.patch('/avatars', auth, uploadAvatar.single('avatar'), tryCatchWrapper(updateUserAvatar));
+router.get('/verify/:verificationToken', tryCatchWrapper(verifyUserEmail));
+router.post('/verify', validation(userValidation), tryCatchWrapper(resendVerificationEmail));
+
 module.exports = router;
