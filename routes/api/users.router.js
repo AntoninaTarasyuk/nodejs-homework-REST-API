@@ -13,17 +13,17 @@ const {
 const { tryCatchWrapper, validation } = require('../../helpers/helpers');
 const auth = require('../../middlewares/auth');
 const uploadAvatar = require('../../middlewares/uploadAvatar');
-const { userValidation, subscriptionValidation } = require('../../models/users.model');
+const { emailSchema, userBodySchema, subscriptionSchema } = require('../../models/users.model');
 
 const router = express.Router();
 
-router.post('/register', validation(userValidation), tryCatchWrapper(registerUser));
-router.post('/login', validation(userValidation), tryCatchWrapper(loginUser));
+router.post('/register', validation(userBodySchema), tryCatchWrapper(registerUser));
+router.post('/login', validation(userBodySchema), tryCatchWrapper(loginUser));
 router.get('/logout', auth, tryCatchWrapper(logoutUser));
 router.get('/current', auth, tryCatchWrapper(getCurrentUser));
-router.patch('/', auth, validation(subscriptionValidation), tryCatchWrapper(updateUserSubscription));
+router.patch('/', auth, validation(subscriptionSchema), tryCatchWrapper(updateUserSubscription));
 router.patch('/avatars', auth, uploadAvatar.single('avatar'), tryCatchWrapper(updateUserAvatar));
 router.get('/verify/:verificationToken', tryCatchWrapper(verifyUserEmail));
-router.post('/verify', validation(userValidation), tryCatchWrapper(resendVerificationEmail));
+router.post('/verify', validation(emailSchema), tryCatchWrapper(resendVerificationEmail));
 
 module.exports = router;

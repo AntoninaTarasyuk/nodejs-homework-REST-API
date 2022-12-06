@@ -14,12 +14,14 @@ const { JWT_SECRET } = process.env;
 const registerUser = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (user) { throw new Conflict(`User with email ${email} already registered`)};
-  const verificationToken = uuidv4(7);
-  const avatarURL = gravatar.url(email);
-  
+  if (user) { throw new Conflict(`User with email ${email} already registered`) };
+
   const salt = await bcrypt.genSalt(5);
   const hashedPassword = await bcrypt.hash(password, salt);
+
+  const avatarURL = gravatar.url(email);
+
+  const verificationToken = uuidv4();
   
   const newUser = await User.create({
     email, password: hashedPassword, avatarURL, verificationToken
@@ -35,11 +37,14 @@ const registerUser = async (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
   const { email, password, verify } = req.body;
-  if (!verify) { throw new Unauthorized('Email is wrong or not verify, or password is wrong'); };
+  if (verify === false) {
+    throw new Unauthorized('Email is wrong or not verify, or password is wrong');
+  };
   const user = await User.findOne({ email });
-  if (!user) { throw new Unauthorized('Email or password is wrong'); };
   const isPassCorrect = await bcrypt.compare(password, user.password);
-  if (!isPassCorrect) { throw new Unauthorized('Email or password is wrong'); };
+  if (!user || !isPassCorrect) {
+    throw new Unauthorized('Email is wrong or not verify, or password is wrong');
+  };
   const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '2h' });
   user.token = token;
   const { subscription } = user;
@@ -89,7 +94,7 @@ const updateUserAvatar = async (req, res, next) => {
 
 const verifyUserEmail = async (req, res, next) => {
   const { verificationToken } = req.params;
-  const user = User.findOne({ verificationToken });
+  const user =await User.findOne({ verificationToken });
   if (!user) { throw new NotFound('User not found') };
   await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null }, { new: true });
   res.status(200).json({ message: 'Verification successful' });
