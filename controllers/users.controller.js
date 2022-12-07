@@ -37,13 +37,13 @@ const registerUser = async (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
   const { email, password, verify } = req.body;
-  if (verify === false) {
-    throw new Unauthorized('Email is wrong or not verify, or password is wrong');
-  };
   const user = await User.findOne({ email });
   const isPassCorrect = await bcrypt.compare(password, user.password);
   if (!user || !isPassCorrect) {
-    throw new Unauthorized('Email is wrong or not verify, or password is wrong');
+    throw new Unauthorized('Email or password is wrong');
+  };
+  if (verify === false) {
+    throw new Unauthorized('Not verify');
   };
   const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '2h' });
   user.token = token;
@@ -95,15 +95,16 @@ const updateUserAvatar = async (req, res, next) => {
 const verifyUserEmail = async (req, res, next) => {
   const { verificationToken } = req.params;
   const user =await User.findOne({ verificationToken });
-  if (!user) { throw new NotFound('User not found') };
+  if (!user) { throw new NotFound('Invalid verification token') };
   await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null }, { new: true });
   res.status(200).json({ message: 'Verification successful' });
 };
 
 const resendVerificationEmail = async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email, verify: false });
-  if (!user) { throw new BadRequest('Verification has already been passed'); };
+  const user = await User.findOne({ email });
+  if (!user) { throw new NotFound(`User with email ${email} not found`); };
+  if (user.verify === true) { throw new BadRequest('Verification has already been passed'); };
   await sendVerificationEmail(user.email, user.verificationToken);
   res.status(200).json({ message: 'Verification email sent' });
 };
